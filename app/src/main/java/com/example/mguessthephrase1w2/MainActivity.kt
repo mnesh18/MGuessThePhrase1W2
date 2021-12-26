@@ -1,6 +1,8 @@
 package com.example.mguessthephrase1w2
 
+import android.content.Context
 import android.content.DialogInterface
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -11,10 +13,11 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_main.*
 
 lateinit var phrase: Phrase
 lateinit var turn: String
-var guessCount = 10
+var guessCount = 0
 lateinit var guessList: ArrayList<String>
 lateinit var guessedLetters: ArrayList<Char>
 lateinit var constraintLayout: ConstraintLayout
@@ -24,10 +27,24 @@ lateinit var recyclerView: RecyclerView
 lateinit var input: EditText
 lateinit var button: Button
 
+private lateinit var userHighScore: TextView
+private lateinit var sharedPreferences: SharedPreferences
+var score = 0
+var highScore = 0
+
 class MainActivity : AppCompatActivity() {
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        sharedPreferences = this.getSharedPreferences(
+            getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+        highScore = sharedPreferences.getInt("HighScore", 0)
+
+        userHighScore = findViewById<TextView>(R.id.highScore2)
+        userHighScore.text = "High Score: $highScore"
 
         // Initialize views
         constraintLayout = findViewById(R.id.cl)
@@ -54,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setGame(){
         phrase = Phrase() // phrases logic have separate class
-        guessCount = 10
+        guessCount = 0
         guessList = arrayListOf()
         guessedLetters = arrayListOf()
         phraseView.text = "Phrase: ${phrase.encodePhrase()}"
@@ -139,5 +156,18 @@ class MainActivity : AppCompatActivity() {
         alert.setTitle(status)
         alert.show()
     }
+
+    private fun updateScore(){
+        score = 10 - guessCount
+        if(score >= highScore){
+            highScore = score
+            with(sharedPreferences.edit()) {
+                putInt("HighScore", highScore)
+                apply()
+            }
+            Snackbar.make(cl, "NEW HIGH SCORE!!", Snackbar.LENGTH_LONG).show()
+        }
+    }
+
 
 }
